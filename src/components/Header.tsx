@@ -1,12 +1,20 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 
 export default function Header() {
+  const [pageTitle, setPageTitle] = useState("Menú Principal"); // Valor inicial igual al del servidor
+
+  useEffect(() => {
+    // Esto solo se ejecuta en el cliente después de la hidratación
+    setPageTitle(document.title || "Menú Principal");
+  }, []);
+
   return (
     <header className="bg-indigo-100 text-indigo-700 px-6 py-4 flex justify-between items-center shadow-sm border-b border-indigo-200">
       {/* Título */}
-      <h2 className="text-lg font-semibold">Menú Principal</h2>
+      <h2 className="text-lg font-semibold">{pageTitle}</h2>
 
       {/* Buscador */}
       <div className="flex-1 mx-6">

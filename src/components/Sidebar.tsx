@@ -3,17 +3,19 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  FaUsers,
   FaBoxOpen,
   FaBarcode,
-  FaBullhorn
+  FaBullhorn,
+  FaMapMarkerAlt,
+  FaUsers,
 } from 'react-icons/fa';
 
 const menuItems = [
-  { label: 'Menu Principal', icon: <FaUsers />, href: '/app' },
-  { label: 'Entrega a Bodegas', icon: <FaBoxOpen />, href: '/app/entrega' },
-  { label: 'Geolocalizado SKU', icon: <FaBarcode />, href: '/app/geolocalizado' },
-  { label: 'Pendientes por Recibir', icon: <FaBullhorn />, href: '/app/pendientes' }
+  { label: 'Menu Principal', icon: <FaUsers />, href: '/' },
+  { label: 'Entrega a Bodegas', icon: <FaBoxOpen />, href: '/entrega-bodegas' },
+  { label: 'Pendiente por Recibir', icon: <FaBullhorn />, href: '/pendiente-recibir' },
+  { label: 'Geolocalizados SKU', icon: <FaBarcode />, href: '/geolocalizados-sku' },
+  { label: 'GeoLocalizacion-SKU/BODEGA', icon: <FaMapMarkerAlt />, href: '/geolocalizacion-sku-bodega' }
 ];
 
 export default function Sidebar() {
@@ -28,7 +30,7 @@ export default function Sidebar() {
           return (
             <Link
               key={label}
-              href={href}
+              href={`/dashboard${href}`}
               className={`
                 flex items-center gap-4 px-4 py-3 rounded-l-full transition-all duration-200
                 ${isActive ? 'bg-indigo-100 text-indigo-600 font-semibold' : 'text-gray-700'}
