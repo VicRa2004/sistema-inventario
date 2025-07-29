@@ -1,122 +1,114 @@
 import {
-  pgTable, serial, varchar, text, integer, timestamp, pgEnum, point
+  pgTable, serial, varchar, text, integer, timestamp, char
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-
-// Enums
-export const rolUsuarioEnum = pgEnum('rol_usuario', ['operador', 'jefe', 'vendedor']);
-export const tipoContenedorEnum = pgEnum('tipo_contenedor', ['C', 'A', 'S', 'Q', 'I', 'E', 'B']);
-export const estadoContenedorEnum = pgEnum('estado_contenedor', ['pendiente', 'en_reparto', 'entregado', 'confirmado']);
-export const estadoEntregaEnum = pgEnum('estado_entrega', ['confirmado', 'rechazado', 'incompleto']);
 
 // Usuarios
 export const usuarios = pgTable('usuarios', {
   idUsuario: serial('id_usuario').primaryKey(),
-  nombre: varchar('nombre').notNull(),
-  correo: varchar('correo').notNull().unique(),
-  password: text('password').notNull(),
-  rol: rolUsuarioEnum('rol').notNull()
+  nombre: varchar('nombre', { length: 100 }),
+  rol: varchar('rol', { length: 50 }), // Ej: 'recepcion', 'envios', 'supervisor'
+  correo: varchar('correo', { length: 100 }),
+  password: text('password')
 });
 
 // Contenedores
 export const contenedores = pgTable('contenedores', {
   idContenedor: serial('id_contenedor').primaryKey(),
-  codigo: varchar('codigo').notNull().unique(),
-  tipo: tipoContenedorEnum('tipo').notNull(),
-  fechaLlegada: timestamp('fecha_llegada').defaultNow(),
-  estado: estadoContenedorEnum('estado').default('pendiente')
+  codigo: varchar('codigo', { length: 50 }).unique(), // Código escaneado o manual
+  tipoPalet: char('tipo_palet', { length: 1 }), // Ej: C, A, S, Q, etc.
+  fechaLlegada: timestamp('fecha_llegada').defaultNow()
 });
 
-// Manifiestos
-export const manifiestos = pgTable('manifiestos', {
-  idManifiesto: serial('id_manifiesto').primaryKey(),
-  idContenedor: integer('id_contenedor').references(() => contenedores.idContenedor, { onDelete: 'cascade' }),
-  escaneadoPor: integer('escaneado_por').references(() => usuarios.idUsuario),
-  fechaEscaneo: timestamp('fecha_escaneo').defaultNow()
+// Bodegas
+export const bodegas = pgTable('bodegas', {
+  idBodega: serial('id_bodega').primaryKey(),
+  nombre: varchar('nombre', { length: 100 }) // Ej: 'bodega general', 'telefonía', etc.
 });
 
 // Entregas
 export const entregas = pgTable('entregas', {
   idEntrega: serial('id_entrega').primaryKey(),
   idContenedor: integer('id_contenedor').references(() => contenedores.idContenedor),
-  repartidoPor: integer('repartido_por').references(() => usuarios.idUsuario),
-  bodegaDestino: varchar('bodega_destino').notNull(),
+  idBodega: integer('id_bodega').references(() => bodegas.idBodega),
+  entregadoPor: integer('entregado_por').references(() => usuarios.idUsuario),
+  recibidoPor: integer('recibido_por').references(() => usuarios.idUsuario),
   fechaEntrega: timestamp('fecha_entrega').defaultNow(),
   observaciones: text('observaciones')
 });
 
-// Confirmaciones
-export const confirmaciones = pgTable('confirmaciones', {
-  idConfirmacion: serial('id_confirmacion').primaryKey(),
-  idEntrega: integer('id_entrega').references(() => entregas.idEntrega),
-  confirmadoPor: integer('confirmado_por').references(() => usuarios.idUsuario),
-  fechaConfirmacion: timestamp('fecha_confirmacion'),
-  estadoEntrega: estadoEntregaEnum('estado_entrega').default('confirmado'),
-  comentarios: text('comentarios')
+// SKU
+export const sku = pgTable('sku', {
+  idSku: serial('id_sku').primaryKey(),
+  codigo: varchar('codigo', { length: 50 }).unique(), // Código individual del producto
+  descripcion: text('descripcion'),
+  idContenedor: integer('id_contenedor').references(() => contenedores.idContenedor),
+  fechaRegistro: timestamp('fecha_registro').defaultNow()
 });
 
-// Ubicaciones SKU
-export const ubicacionesSku = pgTable('ubicaciones_sku', {
-  idUbicacion: serial('id_ubicacion').primaryKey(),
-  sku: varchar('sku').notNull(),
-  bodega: varchar('bodega').notNull(),
-  estante: varchar('estante'),
-  nivel: varchar('nivel'),
-  coordenadas: point('coordenadas'),
-  registradoPor: integer('registrado_por').references(() => usuarios.idUsuario),
-  fechaRegistro: timestamp('fecha_registro').defaultNow()
+// Geolocalización SKU
+export const geolocalizacionSku = pgTable('geolocalizacion_sku', {
+  idGeo: serial('id_geo').primaryKey(),
+  idSku: integer('id_sku').references(() => sku.idSku),
+  idBodega: integer('id_bodega').references(() => bodegas.idBodega),
+  rack: varchar('rack', { length: 20 }),
+  nivel: varchar('nivel', { length: 20 }),
+  pasillo: varchar('pasillo', { length: 20 }),
+  fechaUbicacion: timestamp('fecha_ubicacion').defaultNow()
 });
 
 // Relaciones
 export const usuariosRelations = relations(usuarios, ({ many }) => ({
-  manifiestos: many(manifiestos),
-  entregas: many(entregas),
-  confirmaciones: many(confirmaciones),
-  ubicacionesSku: many(ubicacionesSku)
+  entregasEntregadas: many(entregas, { relationName: 'entregadoPor' }),
+  entregasRecibidas: many(entregas, { relationName: 'recibidoPor' })
 }));
 
 export const contenedoresRelations = relations(contenedores, ({ many }) => ({
-  manifiestos: many(manifiestos),
-  entregas: many(entregas)
+  entregas: many(entregas),
+  skus: many(sku)
 }));
 
-export const entregasRelations = relations(entregas, ({ one, many }) => ({
+export const bodegasRelations = relations(bodegas, ({ many }) => ({
+  entregas: many(entregas),
+  geolocalizaciones: many(geolocalizacionSku)
+}));
+
+export const entregasRelations = relations(entregas, ({ one }) => ({
   contenedor: one(contenedores, {
     fields: [entregas.idContenedor],
     references: [contenedores.idContenedor]
   }),
-  repartidor: one(usuarios, {
-    fields: [entregas.repartidoPor],
-    references: [usuarios.idUsuario]
+  bodega: one(bodegas, {
+    fields: [entregas.idBodega],
+    references: [bodegas.idBodega]
   }),
-  confirmaciones: many(confirmaciones)
-}));
-
-export const confirmacionesRelations = relations(confirmaciones, ({ one }) => ({
-  entrega: one(entregas, {
-    fields: [confirmaciones.idEntrega],
-    references: [entregas.idEntrega]
+  entregador: one(usuarios, {
+    fields: [entregas.entregadoPor],
+    references: [usuarios.idUsuario],
+    relationName: 'entregadoPor'
   }),
-  confirmador: one(usuarios, {
-    fields: [confirmaciones.confirmadoPor],
-    references: [usuarios.idUsuario]
+  receptor: one(usuarios, {
+    fields: [entregas.recibidoPor],
+    references: [usuarios.idUsuario],
+    relationName: 'recibidoPor'
   })
 }));
 
-export const manifestosRelations = relations(manifiestos, ({ one }) => ({
+export const skuRelations = relations(sku, ({ one, many }) => ({
   contenedor: one(contenedores, {
-    fields: [manifiestos.idContenedor],
+    fields: [sku.idContenedor],
     references: [contenedores.idContenedor]
   }),
-  escaneador: one(usuarios, {
-    fields: [manifiestos.escaneadoPor],
-    references: [usuarios.idUsuario]
-  })
+  geolocalizaciones: many(geolocalizacionSku)
 }));
 
-export const ubicacionesSkuRelations = relations(ubicacionesSku, ({ one }) => ({
-  registrador: one(usuarios, {
-    fields: [ubicacionesSku.registradoPor],
-    references: [usuarios.idUsuario]
+export const geolocalizacionSkuRelations = relations(geolocalizacionSku, ({ one }) => ({
+  sku: one(sku, {
+    fields: [geolocalizacionSku.idSku],
+    references: [sku.idSku]
+  }),
+  bodega: one(bodegas, {
+    fields: [geolocalizacionSku.idBodega],
+    references: [bodegas.idBodega]
   })
 }));

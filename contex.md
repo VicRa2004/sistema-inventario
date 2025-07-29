@@ -1,190 +1,63 @@
-### 🎯 Objetivo general de la app:
+## 🧠 **Contexto funcional de la app**
 
-> **Controlar y rastrear con precisión los contenedores y productos (SKU)** desde su llegada, reparto y ubicación final en la tienda, con confirmaciones, geolocalización y trazabilidad completa.
+### 🏪 Nombre tentativo: **Control de Inventario con Geolocalización (CIG)**
 
----
+La aplicación está diseñada para apoyar al personal de **recepción, envíos y supervisión** en una tienda departamental (como Liverpool), para **gestionar, ubicar y rastrear productos** que llegan por manifiestos y se distribuyen entre varias bodegas.
 
-## 🧩 FUNCIONALIDAD PRINCIPAL POR CADA APARTADO
+### 🔄 Flujo general de la app:
 
-### 1️⃣ **Entrega a Bodegas**
-
-> Registrar cuándo, quién y a qué bodega fue entregado un contenedor.
-
-* El operador escanea el contenedor.
-* Se selecciona la bodega de destino.
-* Se registra el nombre del repartidor.
-* Se guarda fecha, hora, tipo y observaciones.
-
-📌 **Datos clave a registrar:**
-
-* Código del contenedor
-* Tipo de contenedor (C, A, S, etc.)
-* Nombre del repartidor
-* Bodega de destino
-* Fecha/hora de entrega
-* Observaciones
+1. **Menú Principal**
+   Desde aquí el usuario puede navegar a cualquiera de los otros 4 módulos principales. Este menú es claro, simple y accesible desde cualquier parte de la app (botonera fija o menú hamburguesa).
+   Funciona como centro de operaciones.
 
 ---
 
-### 2️⃣ **Pendiente por Recibir**
+2. ### 📦 Entrega - Bodegas
 
-> Lista de contenedores entregados pero que aún **no han sido confirmados** como recibidos.
+   Este apartado permite:
 
-* El jefe de área entra a este módulo.
-* Ve todos los contenedores entregados a su bodega.
-* **Confirma la recepción** (firma digital o botón).
-* Puede indicar que no llegó, está incompleto, etc.
+   * Registrar la entrega de un contenedor.
+   * Asignar qué bodega lo recibe (ej. bodega de deportes, colgados, telefonía, etc.).
+   * Registrar el **responsable**, **hora y fecha**, **ubicación** y el **departamento destino**.
+   * Escanear o introducir el código del contenedor.
 
-📌 **Datos clave:**
-
-* Contenedor
-* Bodega destino
-* Repartido por
-* Confirmado por
-* Estado de entrega (pendiente, recibido, con problema)
+   👉 El objetivo es que quede claro **quién lo entregó, a quién, dónde y cuándo**.
 
 ---
 
-### 3️⃣ **Geolocalizados SKU**
+3. ### ⏳ Pendiente por recibir
 
-> Mostrar y registrar la **ubicación física precisa de un SKU**.
+   Muestra un listado de contenedores que **aún no han sido escaneados/recibidos oficialmente** por los departamentos destino.
 
-* Escaneo del SKU.
-* Se registra su ubicación:
-
-  * 📍 GPS real (opcional)
-  * 📦 Interna: estante, nivel, zona, etc.
-* Posibilidad de visualizar dónde están ubicados ciertos productos.
-
-📌 **Datos clave:**
-
-* SKU
-* Estante / nivel / zona
-* Coordenadas (lat, lon si aplica)
-* Fecha/hora
-* Quién lo registró
+   * Es útil para identificar retrasos o pérdidas.
+   * Incluye filtros por tipo de bodega, fecha, tipo de palet, etc.
+   * Ideal para supervisores que necesitan revisar pendientes críticos.
 
 ---
 
-### 4️⃣ **GeoLocalización SKU/Bodega**
+4. ### 📍 Geolocalizados SKU
 
-> Mapa o panel que **relaciona el SKU con su bodega y ubicación exacta.**
+   Este apartado permite:
 
-* Consulta de un SKU te muestra:
-
-  * En qué contenedor estaba.
-  * En qué bodega quedó.
-  * En qué estante o zona.
-  * Si fue entregado correctamente o sigue pendiente.
-
-📌 **Datos clave a mostrar:**
-
-* SKU → Contenedor → Bodega → Ubicación
-* Estado: entregado / pendiente / perdido
-* Botón de visualizar en mapa o plano
+   * Ver productos ya registrados por SKU (código único del producto) junto con su ubicación exacta dentro del sistema.
+   * Ideal para localizar productos individuales.
+   * Se puede utilizar al buscar una prenda específica que un vendedor quiere encontrar, por ejemplo, en el rack o bodega correcta.
 
 ---
 
-## 🗃️ ESTRUCTURA DE BASE DE DATOS PROPUESTA (PostgreSQL)
+5. ### 🧭 Geolocalización SKU / Bodega
 
-### 🧑 `usuarios`
+   Similar al anterior, pero aquí se puede:
 
-```sql
-CREATE TYPE rol_usuario AS ENUM ('operador', 'jefe', 'vendedor');
-
-CREATE TABLE usuarios (
-  id_usuario SERIAL PRIMARY KEY,
-  nombre VARCHAR NOT NULL,
-  correo VARCHAR UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  rol rol_usuario NOT NULL
-);
-```
+   * Consultar **en qué bodega y posición** está un SKU específico (ej. estante, nivel, pasillo).
+   * Visualizar mapas o planos con íconos que representen productos.
+   * Útil para rastrear lotes, encontrar errores en asignación, o resolver pérdidas.
 
 ---
 
-### 📦 `contenedores`
+## 🧩 Extra:
 
-```sql
-CREATE TYPE tipo_contenedor AS ENUM ('C','A','S','Q','I','E','B');
-CREATE TYPE estado_contenedor AS ENUM ('pendiente','en_reparto','entregado','confirmado');
-
-CREATE TABLE contenedores (
-  id_contenedor SERIAL PRIMARY KEY,
-  codigo VARCHAR UNIQUE NOT NULL,
-  tipo tipo_contenedor NOT NULL,
-  fecha_llegada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  estado estado_contenedor DEFAULT 'pendiente'
-);
-```
-
----
-
-### 📋 `manifiestos`
-
-```sql
-CREATE TABLE manifiestos (
-  id_manifiesto SERIAL PRIMARY KEY,
-  id_contenedor INT REFERENCES contenedores(id_contenedor) ON DELETE CASCADE,
-  escaneado_por INT REFERENCES usuarios(id_usuario),
-  fecha_escaneo TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
----
-
-### 📍 `entregas`
-
-```sql
-CREATE TABLE entregas (
-  id_entrega SERIAL PRIMARY KEY,
-  id_contenedor INT REFERENCES contenedores(id_contenedor),
-  repartido_por INT REFERENCES usuarios(id_usuario),
-  bodega_destino VARCHAR NOT NULL,
-  fecha_entrega TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  observaciones TEXT
-);
-```
-
----
-
-### ✅ `confirmaciones`
-
-```sql
-CREATE TABLE confirmaciones (
-  id_confirmacion SERIAL PRIMARY KEY,
-  id_entrega INT REFERENCES entregas(id_entrega),
-  confirmado_por INT REFERENCES usuarios(id_usuario),
-  fecha_confirmacion TIMESTAMP,
-  estado_entrega ENUM('confirmado','rechazado','incompleto') DEFAULT 'confirmado',
-  comentarios TEXT
-);
-```
-
----
-
-### 🧭 `ubicaciones_sku`
-
-```sql
-CREATE TABLE ubicaciones_sku (
-  id_ubicacion SERIAL PRIMARY KEY,
-  sku VARCHAR NOT NULL,
-  bodega VARCHAR NOT NULL,
-  estante VARCHAR,
-  nivel VARCHAR,
-  coordenadas POINT, -- lat/lon si hay GPS
-  registrado_por INT REFERENCES usuarios(id_usuario),
-  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
----
-
-## 🔄 FLUJO LÓGICO DE LA APP
-
-1. **Recepción de contenedores:** Se escanean y se registran con tipo y fecha.
-2. **Entrega a bodega:** Se asigna repartidor y bodega de destino.
-3. **Pendientes por recibir:** El jefe confirma la entrega en el sistema.
-4. **Geolocalización:** Se registran o consultan posiciones físicas de productos.
-5. **Consulta de trazabilidad:** De un SKU se puede saber todo: manifiesto, contenedor, bodega, estante.
-
+* La mercancía llega clasificada por tipo de palet (C, A, S, Q, I, E, B).
+* El personal divide la mercancía entre dos áreas: recepción/envíos y operaciones.
+* Hay varias bodegas por tipo de producto.
+* Se requiere una trazabilidad clara: quién entrega, recibe, dónde se queda y cuándo.

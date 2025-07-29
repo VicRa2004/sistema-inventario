@@ -13,7 +13,7 @@ import {
 const menuItems = [
   { label: 'Menu Principal', icon: <FaUsers />, href: '/' },
   { label: 'Entrega a Bodegas', icon: <FaBoxOpen />, href: '/entrega-bodegas' },
-  { label: 'Pendiente por Recibir', icon: <FaBullhorn />, href: '/pendiente-recibir' },
+  { label: 'Pendiente por Recibir', icon: <FaBullhorn />, href: '/pendiente-por-recibir' },
   { label: 'Geolocalizados SKU', icon: <FaBarcode />, href: '/geolocalizados-sku' },
   { label: 'GeoLocalizacion-SKU/BODEGA', icon: <FaMapMarkerAlt />, href: '/geolocalizacion-sku-bodega' }
 ];

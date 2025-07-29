@@ -1,7 +1,7 @@
-// Exportación de todos los modelos
-export { UsuarioModel } from './UsuarioModel';
-export { ContenedorModel } from './ContenedorModel';
-export { ManifiestoModel } from './ManifiestoModel';
-export { EntregaModel } from './EntregaModel';
-export { ConfirmacionModel } from './ConfirmacionModel';
-export { UbicacionSkuModel } from './UbicacionSkuModel';
+// Exportar todos los modelos
+export { UsuarioModel, type IUsuario } from './Usuario';
+export { ContenedorModel, type IContenedor } from './Contenedor';
+export { BodegaModel, type IBodega } from './Bodega';
+export { EntregaModel, type IEntrega } from './Entrega';
+export { SkuModel, type ISku } from './Sku';
+export { GeolocalizacionSkuModel, type IGeolocalizacionSku } from './GeolocalizacionSku';
