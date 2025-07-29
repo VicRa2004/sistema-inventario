@@ -7,7 +7,7 @@ const items = [
   {
     title: "Pendiente por Recibir",
     image: "/img-menu-2.png",
-    url: "/pendiente-recibir",
+    url: "/pendiente-por-recibir",
   },
   {
     title: "Geolocalizados SKU",
