@@ -1,21 +1,23 @@
 import Link from 'next/link';
-import { FaUserCircle } from 'react-icons/fa';
+import { Warehouse, User } from 'lucide-react';
 
 export default function TopNavbar() {
   return (
-    <header className="bg-indigo-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
-      {/* Nombre de la app */}
-      <Link href="/" className="">
-        <h1 className="text-lg md:text-xl font-semibold tracking-tight hover:text-indigo-200 transition">
-        Geolocalización bodegas T0012
-        </h1>
+    <header className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-4 flex justify-between items-center shadow-md">
+      <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+        <Warehouse className="h-7 w-7" />
+        <div>
+          <h1 className="text-lg md:text-xl font-semibold tracking-tight">
+            Sistema de Inventarios
+          </h1>
+          <p className="text-xs text-indigo-200">Control y Geolocalización</p>
+        </div>
       </Link>
 
-      {/* Menú de usuario (placeholder) */}
-      <div className="flex items-center gap-2 cursor-pointer hover:text-indigo-200 transition">
-        <FaUserCircle className="text-2xl" />
-        <span className="hidden md:inline text-sm">Cuenta</span>
-      </div>
+      <Link href="/login" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
+        <User className="h-5 w-5" />
+        <span className="text-sm font-medium">Iniciar sesión</span>
+      </Link>
     </header>
   );
 }

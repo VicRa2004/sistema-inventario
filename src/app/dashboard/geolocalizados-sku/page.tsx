@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   obtenerSkusGeolocalizados,
   buscarSkuPorCodigo,
@@ -13,7 +13,7 @@ import {
 
 interface Bodega {
   idBodega: number;
-  nombre: string;
+  nombre: string | null;
 }
 
 export default function GeolocalizadosSkuPage() {
@@ -31,6 +31,22 @@ export default function GeolocalizadosSkuPage() {
     pasillo: ''
   });
 
+  const cargarDatos = useCallback(async () => {
+    setLoading(true);
+    try {
+      const resultado = await obtenerSkusGeolocalizados(filtros);
+      if (resultado.success) {
+        setSkus(resultado.data || []);
+      } else {
+        setSkus([]);
+      }
+    } catch {
+      setSkus([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [filtros]);
+
   useEffect(() => {
     const cargarBodegas = async () => {
       try {
@@ -40,35 +56,17 @@ export default function GeolocalizadosSkuPage() {
         } else {
           console.error('Error al cargar bodegas:', resultado.error);
         }
-      } catch (error) {
-        console.error('Error al cargar bodegas:', error);
+      } catch {
+        console.error('Error al cargar bodegas');
       }
     };
-    
+
     cargarBodegas();
   }, []);
 
   useEffect(() => {
     cargarDatos();
-  }, [filtros]);
-
-  const cargarDatos = async () => {
-    setLoading(true);
-    try {
-      const resultado = await obtenerSkusGeolocalizados(filtros);
-      if (resultado.success) {
-        setSkus(resultado.data || []);
-      } else {
-        console.error('Error al cargar SKUs:', resultado.error);
-        setSkus([]);
-      }
-    } catch (error) {
-      console.error('Error al cargar SKUs:', error);
-      setSkus([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [cargarDatos]);
 
 
 

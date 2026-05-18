@@ -11,20 +11,20 @@ import {
 // Tipos para las acciones
 export interface SkuConUbicacion {
   idSku: number;
-  codigo: string;
-  descripcion: string;
-  idContenedor?: number;
-  codigoContenedor?: string;
-  fechaRegistro: Date;
+  codigo: string | null;
+  descripcion: string | null;
+  idContenedor?: number | null;
+  codigoContenedor?: string | null;
+  fechaRegistro: Date | null;
   // Datos de geolocalización
   idGeo?: number;
-  idBodega?: number;
-  nombreBodega?: string;
-  rack?: string;
-  nivel?: string;
-  pasillo?: string;
-  fechaUbicacion?: Date;
-  codigoUbicacion?: string;
+  idBodega?: number | null;
+  nombreBodega?: string | null;
+  rack?: string | null;
+  nivel?: string | null;
+  pasillo?: string | null;
+  fechaUbicacion?: Date | null;
+  codigoUbicacion?: string | null;
 }
 
 export interface FiltrosSkuGeolocalizados {
@@ -118,14 +118,14 @@ export async function obtenerSkusGeolocalizados(filtros?: FiltrosSkuGeolocalizad
       }
 
       if (filtros.codigoSku) {
-        skusFiltrados = skusFiltrados.filter(sku => 
-          sku.codigo.toLowerCase().includes(filtros.codigoSku!.toLowerCase())
+        skusFiltrados = skusFiltrados.filter(sku =>
+          sku.codigo?.toLowerCase().includes(filtros.codigoSku!.toLowerCase())
         );
       }
 
       if (filtros.descripcion) {
-        skusFiltrados = skusFiltrados.filter(sku => 
-          sku.descripcion.toLowerCase().includes(filtros.descripcion!.toLowerCase())
+        skusFiltrados = skusFiltrados.filter(sku =>
+          sku.descripcion?.toLowerCase().includes(filtros.descripcion!.toLowerCase())
         );
       }
 

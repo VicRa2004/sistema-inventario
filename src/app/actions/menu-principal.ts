@@ -1,14 +1,16 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { 
+import {
   EntregaModel,
   SkuModel,
   BodegaModel,
   ContenedorModel,
   GeolocalizacionSkuModel,
   type ISku,
-  type IContenedor
+  type IContenedor,
+  type IEntrega,
+  type IGeolocalizacionSku
 } from '@/models';
 
 // Tipos para el dashboard principal
@@ -42,9 +44,22 @@ export interface EstadisticasGenerales {
 }
 
 export interface ResumenActividad {
-  entregasRecientes: any[];
-  skusRecientes: any[];
-  alertasPendientes: any[];
+  entregasRecientes: {
+    idEntrega: number;
+    fechaEntrega: Date;
+    codigoContenedor: string;
+    nombreBodega: string;
+    entregadoPor: string;
+    observaciones: string;
+  }[];
+  skusRecientes: ISku[];
+  alertasPendientes: IEntrega[];
+}
+
+export interface NavegacionSeccionStats {
+  total?: number;
+  pendientes?: number;
+  criticos?: number;
 }
 
 export interface NavegacionSeccion {
@@ -53,11 +68,7 @@ export interface NavegacionSeccion {
   descripcion: string;
   icono: string;
   ruta: string;
-  estadisticas?: {
-    total?: number;
-    pendientes?: number;
-    criticos?: number;
-  };
+  estadisticas?: NavegacionSeccionStats;
 }
 
 // === ACCIONES PARA MENÚ PRINCIPAL ===
@@ -217,7 +228,7 @@ export async function obtenerSeccionesNavegacion(): Promise<{ success: boolean; 
         id: 'entrega-bodegas',
         nombre: 'Entrega - Bodegas',
         descripcion: 'Registrar entregas de contenedores y asignar bodegas destino',
-        icono: '📦',
+        icono: '',
         ruta: '/dashboard/entrega-bodegas',
         estadisticas: {
           total: stats.entregas.total,
@@ -228,7 +239,7 @@ export async function obtenerSeccionesNavegacion(): Promise<{ success: boolean; 
         id: 'pendientes',
         nombre: 'Pendiente por recibir',
         descripcion: 'Contenedores entregados pero no confirmados como recibidos',
-        icono: '⏳',
+        icono: '',
         ruta: '/dashboard/pendientes',
         estadisticas: {
           total: stats.entregas.pendientes,
@@ -239,7 +250,7 @@ export async function obtenerSeccionesNavegacion(): Promise<{ success: boolean; 
         id: 'geolocalizados-sku',
         nombre: 'Geolocalizados SKU',
         descripcion: 'Ver productos registrados con su ubicación exacta',
-        icono: '📍',
+        icono: '',
         ruta: '/dashboard/geolocalizados-sku',
         estadisticas: {
           total: stats.skus.ubicados,
@@ -250,7 +261,7 @@ export async function obtenerSeccionesNavegacion(): Promise<{ success: boolean; 
         id: 'geolocalizacion-sku-bodega',
         nombre: 'Geolocalización SKU / Bodega',
         descripcion: 'Consultar ubicaciones específicas y mapas de bodegas',
-        icono: '🧭',
+        icono: '',
         ruta: '/dashboard/geolocalizacion-sku-bodega',
         estadisticas: {
           total: stats.bodegas.total,
@@ -303,7 +314,7 @@ export async function obtenerAlertasCriticas() {
       alertas.push({
         tipo: 'critico',
         mensaje: `${stats.alertas.pendientesCriticos} entregas críticas pendientes`,
-        icono: '🚨',
+        icono: '',
         ruta: '/dashboard/pendientes'
       });
     }
@@ -313,7 +324,7 @@ export async function obtenerAlertasCriticas() {
       alertas.push({
         tipo: 'advertencia',
         mensaje: `${stats.alertas.skusSinUbicar} SKUs sin ubicar`,
-        icono: '⚠️',
+        icono: '',
         ruta: '/dashboard/geolocalizados-sku'
       });
     }
@@ -323,7 +334,7 @@ export async function obtenerAlertasCriticas() {
       alertas.push({
         tipo: 'info',
         mensaje: 'Baja actividad en algunas bodegas',
-        icono: 'ℹ️',
+        icono: '',
         ruta: '/dashboard/geolocalizacion-sku-bodega'
       });
     }
@@ -343,7 +354,7 @@ export async function busquedaGlobal(termino: string) {
     const resultados = {
       contenedores: [] as IContenedor[],
       skus: [] as ISku[],
-      ubicaciones: [] as any[]
+      ubicaciones: [] as IGeolocalizacionSku[]
     };
 
     // Buscar contenedores

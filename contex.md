@@ -1,10 +1,10 @@
-## 🧠 **Contexto funcional de la app**
+## **Contexto funcional de la app**
 
-### 🏪 Nombre tentativo: **Control de Inventario con Geolocalización (CIG)**
+### Nombre tentativo: **Control de Inventario con Geolocalización (CIG)**
 
 La aplicación está diseñada para apoyar al personal de **recepción, envíos y supervisión** en una tienda departamental (como Liverpool), para **gestionar, ubicar y rastrear productos** que llegan por manifiestos y se distribuyen entre varias bodegas.
 
-### 🔄 Flujo general de la app:
+### Flujo general de la app:
 
 1. **Menú Principal**
    Desde aquí el usuario puede navegar a cualquiera de los otros 4 módulos principales. Este menú es claro, simple y accesible desde cualquier parte de la app (botonera fija o menú hamburguesa).
@@ -12,7 +12,7 @@ La aplicación está diseñada para apoyar al personal de **recepción, envíos 
 
 ---
 
-2. ### 📦 Entrega - Bodegas
+2. ### Entrega - Bodegas
 
    Este apartado permite:
 
@@ -21,11 +21,11 @@ La aplicación está diseñada para apoyar al personal de **recepción, envíos 
    * Registrar el **responsable**, **hora y fecha**, **ubicación** y el **departamento destino**.
    * Escanear o introducir el código del contenedor.
 
-   👉 El objetivo es que quede claro **quién lo entregó, a quién, dónde y cuándo**.
+   El objetivo es que quede claro **quién lo entregó, a quién, dónde y cuándo**.
 
 ---
 
-3. ### ⏳ Pendiente por recibir
+3. ###  Pendiente por recibir
 
    Muestra un listado de contenedores que **aún no han sido escaneados/recibidos oficialmente** por los departamentos destino.
 
@@ -35,7 +35,7 @@ La aplicación está diseñada para apoyar al personal de **recepción, envíos 
 
 ---
 
-4. ### 📍 Geolocalizados SKU
+4. ### Geolocalizados SKU
 
    Este apartado permite:
 
@@ -45,7 +45,7 @@ La aplicación está diseñada para apoyar al personal de **recepción, envíos 
 
 ---
 
-5. ### 🧭 Geolocalización SKU / Bodega
+5. ### Geolocalización SKU / Bodega
 
    Similar al anterior, pero aquí se puede:
 
@@ -55,7 +55,7 @@ La aplicación está diseñada para apoyar al personal de **recepción, envíos 
 
 ---
 
-## 🧩 Extra:
+## Extra:
 
 * La mercancía llega clasificada por tipo de palet (C, A, S, Q, I, E, B).
 * El personal divide la mercancía entre dos áreas: recepción/envíos y operaciones.

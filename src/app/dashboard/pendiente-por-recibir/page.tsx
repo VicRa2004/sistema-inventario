@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   obtenerEntregasConDetalles,
   confirmarRecepcion,
@@ -9,18 +9,18 @@ import {
 
 interface Entrega {
   idEntrega: number;
-  contenedor: { codigo: string; tipoPalet: string };
-  bodega: { nombre: string };
-  entregador: { nombre: string };
-  receptor?: { nombre: string };
-  fechaEntrega: string;
-  observaciones?: string;
+  contenedor: { codigo: string | null; tipoPalet: string | null };
+  bodega: { nombre: string | null };
+  entregador: { nombre: string | null };
+  receptor?: { nombre: string | null };
+  fechaEntrega: Date | null;
+  observaciones?: string | null;
 }
 
 interface Usuario {
   idUsuario: number;
-  nombre: string;
-  rol: string;
+  nombre: string | null;
+  rol: string | null;
 }
 
 export default function PendientePorRecibirPage() {
@@ -35,11 +35,7 @@ export default function PendientePorRecibirPage() {
     observaciones: ''
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [entregasRes, usuariosRes] = await Promise.all([
@@ -48,17 +44,36 @@ export default function PendientePorRecibirPage() {
       ]);
 
       if (entregasRes.success && entregasRes.data) {
-        // Filtrar solo entregas pendientes (sin receptor)
-        const entregasPendientes = entregasRes.data.filter((entrega: any) => !entrega.receptor);
-        setEntregas(entregasPendientes);
+        const entregasTransformadas = entregasRes.data
+          .filter((item) => !item.entrega.recibidoPor)
+          .map((item) => ({
+            idEntrega: item.entrega.idEntrega,
+            contenedor: {
+              codigo: item.contenedor?.codigo || 'Sin código',
+              tipoPalet: item.contenedor?.tipoPalet || 'N/A'
+            },
+            bodega: {
+              nombre: item.bodega?.nombre || 'Sin bodega'
+            },
+            entregador: {
+              nombre: item.entregador?.nombre || 'Sin nombre'
+            },
+            fechaEntrega: item.entrega?.fechaEntrega || new Date(),
+            observaciones: item.entrega?.observaciones || ''
+          }));
+        setEntregas(entregasTransformadas);
       }
       if (usuariosRes.success && usuariosRes.data) setUsuarios(usuariosRes.data);
-    } catch (error) {
+    } catch {
       showMessage('error', 'Error al cargar los datos');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
@@ -80,12 +95,12 @@ export default function PendientePorRecibirPage() {
         setRecepcionForm({ idEntrega: 0, recibidoPor: 0, observaciones: '' });
         setSelectedEntrega(null);
         loadData();
-      } else {
-        showMessage('error', result.error || 'Error al confirmar recepción');
-      }
-    } catch (error) {
-      showMessage('error', 'Error al confirmar recepción');
-    } finally {
+    } else {
+      showMessage('error', result.error || 'Error al confirmar recepción');
+    }
+  } catch {
+    showMessage('error', 'Error al confirmar recepción');
+  } finally {
       setLoading(false);
     }
   };
@@ -153,9 +168,9 @@ export default function PendientePorRecibirPage() {
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">Entregado por:</span> {entrega.entregador.nombre}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    <span className="font-medium">Fecha:</span> {new Date(entrega.fechaEntrega).toLocaleString()}
-                  </p>
+              <p className="text-xs text-gray-500">
+                <span className="font-medium">Fecha:</span> {entrega.fechaEntrega ? new Date(entrega.fechaEntrega).toLocaleString() : 'N/A'}
+              </p>
                   {entrega.observaciones && (
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Obs:</span> {entrega.observaciones}

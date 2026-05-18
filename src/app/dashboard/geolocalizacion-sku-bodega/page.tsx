@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   obtenerUbicacionesConDetalles,
   buscarUbicacionPorSku,
@@ -36,37 +36,21 @@ export default function GeolocalizacionSkuBodegaPage() {
   const [cargando, setCargando] = useState(false);
   const [vistaActual, setVistaActual] = useState<'lista' | 'mapa' | 'estadisticas'>('lista');
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    cargarDatosIniciales();
-  }, []);
-
-  // Cargar ubicaciones cuando cambien los filtros
-  useEffect(() => {
-    if (Object.keys(filtros).length > 0) {
-      cargarUbicaciones();
-    }
-  }, [filtros]);
-
-  const cargarDatosIniciales = async () => {
+  const cargarDatosIniciales = useCallback(async () => {
     setCargando(true);
     try {
-      // Cargar bodegas
       const resultadoBodegas = await obtenerBodegas();
       if (resultadoBodegas.success && resultadoBodegas.data) {
         setBodegas(resultadoBodegas.data);
       }
-
-      // Cargar ubicaciones iniciales
-      await cargarUbicaciones();
-    } catch (error) {
-      console.error('Error al cargar datos iniciales:', error);
+    } catch {
+      console.error('Error al cargar datos iniciales');
     } finally {
       setCargando(false);
     }
-  };
+  }, []);
 
-  const cargarUbicaciones = async () => {
+  const cargarUbicaciones = useCallback(async () => {
     try {
       const resultado = await obtenerUbicacionesConDetalles(filtros);
       if (resultado.success && resultado.data) {
@@ -74,11 +58,18 @@ export default function GeolocalizacionSkuBodegaPage() {
       } else {
         setUbicaciones([]);
       }
-    } catch (error) {
-      console.error('Error al cargar ubicaciones:', error);
+    } catch {
       setUbicaciones([]);
     }
-  };
+  }, [filtros]);
+
+  useEffect(() => {
+    cargarDatosIniciales();
+  }, [cargarDatosIniciales]);
+
+  useEffect(() => {
+    cargarUbicaciones();
+  }, [cargarUbicaciones]);
 
   const buscarPorCodigo = async () => {
     if (!codigoBusqueda.trim()) {
@@ -115,7 +106,7 @@ export default function GeolocalizacionSkuBodegaPage() {
     try {
       const resultado = await obtenerMapaOcupacionBodega(idBodega);
       if (resultado.success && resultado.data) {
-        // Transformar los datos del modelo a la estructura esperada
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mapaTransformado = resultado.data.mapa.map((item: any) => ({
           rack: item.ubicacion.rack || '',
           nivel: item.ubicacion.nivel || '',
@@ -130,8 +121,7 @@ export default function GeolocalizacionSkuBodegaPage() {
       } else {
         setMapaOcupacion([]);
       }
-    } catch (error) {
-      console.error('Error al cargar mapa:', error);
+    } catch {
       setMapaOcupacion([]);
     } finally {
       setCargando(false);
@@ -188,7 +178,7 @@ export default function GeolocalizacionSkuBodegaPage() {
     <div className="container mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          🧭 Geolocalización SKU / Bodega
+          Geolocalización SKU / Bodega
         </h1>
         <p className="text-gray-600">
           Consulta la ubicación exacta de productos y visualiza mapas de ocupación por bodega
@@ -197,7 +187,7 @@ export default function GeolocalizacionSkuBodegaPage() {
 
       {/* Búsqueda por código SKU */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">🔍 Buscar SKU</h2>
+        <h2 className="text-xl font-semibold mb-4">Buscar SKU</h2>
         <div className="flex gap-4 items-end">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -224,7 +214,7 @@ export default function GeolocalizacionSkuBodegaPage() {
         {/* Resultado de búsqueda */}
         {ubicacionBuscada && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-            <h3 className="font-semibold text-green-800 mb-2">✅ SKU Encontrado</h3>
+            <h3 className="font-semibold text-green-800 mb-2">SKU Encontrado</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="font-medium">Código:</span>
@@ -295,7 +285,7 @@ export default function GeolocalizacionSkuBodegaPage() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              📋 Lista
+              Lista
             </button>
             <button
               onClick={() => cambiarVista('mapa')}
@@ -306,7 +296,7 @@ export default function GeolocalizacionSkuBodegaPage() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50'
               }`}
             >
-              🗺️ Mapa
+              Mapa
             </button>
             <button
               onClick={() => cambiarVista('estadisticas')}
@@ -317,7 +307,7 @@ export default function GeolocalizacionSkuBodegaPage() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50'
               }`}
             >
-              📊 Estadísticas
+              Estadísticas
             </button>
           </div>
         </div>
@@ -327,7 +317,7 @@ export default function GeolocalizacionSkuBodegaPage() {
       <div className="bg-white rounded-lg shadow-md p-6">
         {vistaActual === 'lista' && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">📋 Lista de Ubicaciones</h2>
+            <h2 className="text-xl font-semibold mb-4">Lista de Ubicaciones</h2>
             {cargando ? (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -409,7 +399,7 @@ export default function GeolocalizacionSkuBodegaPage() {
 
         {vistaActual === 'mapa' && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">🗺️ Mapa de Ocupación</h2>
+            <h2 className="text-xl font-semibold mb-4">Mapa de Ocupación</h2>
             {!bodegaSeleccionada ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Seleccione una bodega para ver el mapa</p>
@@ -439,7 +429,7 @@ export default function GeolocalizacionSkuBodegaPage() {
                           ? 'bg-red-100 text-red-800'
                           : 'bg-green-100 text-green-800'
                       }`}>
-                        {ubicacion.ocupado ? '🔴 Ocupado' : '🟢 Libre'}
+                        {ubicacion.ocupado ? 'Ocupado' : 'Libre'}
                       </span>
                     </div>
                     {ubicacion.ocupado && (
@@ -464,7 +454,7 @@ export default function GeolocalizacionSkuBodegaPage() {
 
         {vistaActual === 'estadisticas' && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">📊 Estadísticas de Bodega</h2>
+            <h2 className="text-xl font-semibold mb-4">Estadísticas de Bodega</h2>
             {!bodegaSeleccionada ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Seleccione una bodega para ver las estadísticas</p>

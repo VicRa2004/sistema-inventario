@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   registrarEntrega,
   crearContenedor,
@@ -15,31 +15,33 @@ import {
 
 interface Entrega {
   idEntrega: number;
-  contenedor: { codigo: string; tipoPalet: string };
-  bodega: { nombre: string };
-  entregador: { nombre: string };
-  receptor?: { nombre: string };
+  contenedor: { codigo: string; tipoPalet: string; idContenedor?: number };
+  bodega: { nombre: string; idBodega?: number };
+  entregador: { nombre: string; idUsuario?: number };
+  receptor?: { nombre: string; idUsuario?: number };
   fechaEntrega: string;
   observaciones?: string;
 }
 
 interface Contenedor {
   idContenedor: number;
-  codigo: string;
-  tipoPalet: string;
-  fechaLlegada: string;
+  codigo: string | null;
+  tipoPalet: string | null;
+  fechaLlegada: Date | null;
 }
 
 interface Bodega {
   idBodega: number;
-  nombre: string;
+  nombre: string | null;
 }
 
 interface Usuario {
   idUsuario: number;
-  nombre: string;
-  rol: string;
+  nombre: string | null;
+  rol: string | null;
 }
+
+
 
 export default function EntregaBodegasPage() {
   const [activeTab, setActiveTab] = useState('entregas');
@@ -65,11 +67,7 @@ export default function EntregaBodegasPage() {
 
   const [bodegaForm, setBodegaForm] = useState({ nombre: '' });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [entregasRes, contenedoresRes, bodegasRes, usuariosRes] = await Promise.all([
@@ -79,18 +77,39 @@ export default function EntregaBodegasPage() {
         obtenerUsuarios()
       ]);
 
-      console.log(entregasRes);
-
-      if (entregasRes.success) setEntregas(entregasRes.data);
-      if (contenedoresRes.success) setContenedores(contenedoresRes.data);
-      if (bodegasRes.success) setBodegas(bodegasRes.data);
-      if (usuariosRes.success) setUsuarios(usuariosRes.data);
-    } catch (error) {
+      if (entregasRes.success && entregasRes.data) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const entregasTransformadas = entregasRes.data.map((item: any) => ({
+          idEntrega: item.entrega.idEntrega,
+          contenedor: {
+            codigo: item.contenedor?.codigo || 'Sin código',
+            tipoPalet: item.contenedor?.tipoPalet || 'N/A'
+          },
+          bodega: {
+            nombre: item.bodega?.nombre || 'Sin bodega'
+          },
+          entregador: {
+            nombre: item.entregador?.nombre || 'Sin nombre'
+          },
+          receptor: item.receptor ? { nombre: item.receptor.nombre } : undefined,
+          fechaEntrega: item.entrega?.fechaEntrega || new Date(),
+          observaciones: item.entrega?.observaciones || ''
+        }));
+        setEntregas(entregasTransformadas);
+      }
+      if (contenedoresRes.success) setContenedores(contenedoresRes.data || []);
+      if (bodegasRes.success) setBodegas(bodegasRes.data || []);
+      if (usuariosRes.success) setUsuarios(usuariosRes.data || []);
+    } catch {
       showMessage('error', 'Error al cargar los datos');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
@@ -107,12 +126,12 @@ export default function EntregaBodegasPage() {
         showMessage('success', 'Entrega registrada correctamente');
         setEntregaForm({ codigoContenedor: '', idBodega: 0, entregadoPor: 0, observaciones: '' });
         loadData();
-      } else {
-        showMessage('error', result.error || 'Error al registrar entrega');
-      }
-    } catch (error) {
-      showMessage('error', 'Error al registrar entrega');
-    } finally {
+    } else {
+      showMessage('error', result.error || 'Error al registrar entrega');
+    }
+  } catch {
+    showMessage('error', 'Error al registrar entrega');
+  } finally {
       setLoading(false);
     }
   };
@@ -127,13 +146,12 @@ export default function EntregaBodegasPage() {
         showMessage('success', 'Contenedor creado correctamente');
         setContenedorForm({ codigo: '', tipoPalet: 'C' });
         loadData();
-      } else {
-        showMessage('error', result.error || 'Error al crear contenedor');
-      }
-    } catch (error) {
-      showMessage('error', 'Error al crear contenedor');
-      console.log(error);
-    } finally {
+    } else {
+      showMessage('error', result.error || 'Error al crear contenedor');
+    }
+  } catch {
+    showMessage('error', 'Error al crear contenedor');
+  } finally {
       setLoading(false);
     }
   };
@@ -148,12 +166,12 @@ export default function EntregaBodegasPage() {
         showMessage('success', 'Bodega creada correctamente');
         setBodegaForm({ nombre: '' });
         loadData();
-      } else {
-        showMessage('error', result.error || 'Error al crear bodega');
-      }
-    } catch (error) {
-      showMessage('error', 'Error al crear bodega');
-    } finally {
+    } else {
+      showMessage('error', result.error || 'Error al crear bodega');
+    }
+  } catch {
+    showMessage('error', 'Error al crear bodega');
+  } finally {
       setLoading(false);
     }
   };
@@ -389,9 +407,9 @@ export default function EntregaBodegasPage() {
                         <p className="text-sm text-gray-600">
                           Tipo: {contenedor.tipoPalet}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(contenedor.fechaLlegada).toLocaleString()}
-                        </p>
+              <p className="text-xs text-gray-500">
+                {contenedor.fechaLlegada ? new Date(contenedor.fechaLlegada).toLocaleString() : 'N/A'}
+              </p>
                       </div>
                     </div>
                   </div>
