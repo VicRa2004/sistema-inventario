@@ -13,7 +13,12 @@ export interface IUsuario {
 export class UsuarioModel {
   // Crear un nuevo usuario
   static async create(data: Omit<IUsuario, 'idUsuario'>): Promise<IUsuario> {
-    const [usuario] = await db.insert(usuarios).values(data).returning();
+    const [result] = await db.insert(usuarios).values(data);
+    const insertId = result.insertId;
+    const usuario = await this.getById(insertId);
+    if (!usuario) {
+      throw new Error('Error al crear usuario');
+    }
     return usuario;
   }
 
@@ -36,17 +41,16 @@ export class UsuarioModel {
 
   // Actualizar usuario
   static async update(id: number, data: Partial<Omit<IUsuario, 'idUsuario'>>): Promise<IUsuario | null> {
-    const [usuario] = await db.update(usuarios)
+    await db.update(usuarios)
       .set(data)
-      .where(eq(usuarios.idUsuario, id))
-      .returning();
-    return usuario || null;
+      .where(eq(usuarios.idUsuario, id));
+    return await this.getById(id);
   }
 
   // Eliminar usuario
   static async delete(id: number): Promise<boolean> {
-    const result = await db.delete(usuarios).where(eq(usuarios.idUsuario, id));
-    return (result.rowCount ?? 0) > 0;
+    const [result] = await db.delete(usuarios).where(eq(usuarios.idUsuario, id));
+    return result.affectedRows > 0;
   }
 
   // Validar credenciales (para login)

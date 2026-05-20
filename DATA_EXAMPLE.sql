@@ -25,15 +25,13 @@ INSERT INTO sku (codigo, descripcion, id_contenedor) VALUES
 INSERT INTO entregas (id_contenedor, id_bodega, entregado_por, recibido_por, observaciones) VALUES
 (1, 2, 1, 2, 'Entrega completa, sin observaciones'),
 (2, 1, 1, 3, 'Faltan 2 unidades por verificar'),
-(3, 3, 2, 1, 'Productos frágiles'),
-(4, 4, 3, 2, 'Entrega urgente');
+(3, 3, 2, NULL, 'Productos frágiles'),
+(4, 4, 3, NULL, 'Entrega urgente');
 
 INSERT INTO geolocalizacion_sku (id_sku, id_bodega, rack, nivel, pasillo) VALUES
 (1, 2, 'R05', 'N2', 'P3'),
-(2, 1, 'R12', 'N1', 'P7'),
-(3, 1, 'R08', 'N3', 'P2'),
-(4, 3, 'R03', 'N1', 'P5'),
-(5, 4, 'R15', 'N2', 'P1');
+(2, 2, 'R12', 'N1', 'P7'),
+(3, 1, 'R08', 'N3', 'P2');
 
 SELECT c.codigo, s.codigo AS sku, s.descripcion
 FROM contenedores c
@@ -45,7 +43,7 @@ FROM entregas e
 JOIN contenedores c ON e.id_contenedor = c.id_contenedor
 JOIN bodegas b ON e.id_bodega = b.id_bodega
 JOIN usuarios u1 ON e.entregado_por = u1.id_usuario
-JOIN usuarios u2 ON e.recibido_por = u2.id_usuario;
+LEFT JOIN usuarios u2 ON e.recibido_por = u2.id_usuario;
 
 SELECT s.codigo, s.descripcion, b.nombre AS bodega,
        g.rack, g.nivel, g.pasillo

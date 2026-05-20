@@ -15,7 +15,12 @@ export interface IEntrega {
 export class EntregaModel {
   // Crear una nueva entrega
   static async create(data: Omit<IEntrega, 'idEntrega'>): Promise<IEntrega> {
-    const [entrega] = await db.insert(entregas).values(data).returning();
+    const [result] = await db.insert(entregas).values(data);
+    const insertId = result.insertId;
+    const entrega = await this.getById(insertId);
+    if (!entrega) {
+      throw new Error('Error al crear entrega');
+    }
     return entrega;
   }
 
@@ -32,17 +37,16 @@ export class EntregaModel {
 
   // Actualizar entrega
   static async update(id: number, data: Partial<Omit<IEntrega, 'idEntrega'>>): Promise<IEntrega | null> {
-    const [entrega] = await db.update(entregas)
+    await db.update(entregas)
       .set(data)
-      .where(eq(entregas.idEntrega, id))
-      .returning();
-    return entrega || null;
+      .where(eq(entregas.idEntrega, id));
+    return await this.getById(id);
   }
 
   // Eliminar entrega
   static async delete(id: number): Promise<boolean> {
-    const result = await db.delete(entregas).where(eq(entregas.idEntrega, id));
-    return (result.rowCount ?? 0) > 0;
+    const [result] = await db.delete(entregas).where(eq(entregas.idEntrega, id));
+    return result.affectedRows > 0;
   }
 
   // Obtener entregas con información completa (joins)

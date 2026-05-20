@@ -10,12 +10,12 @@ Antes de realizar cambios, ten en cuenta las versiones e integraciones del proye
 
 * **Framework Principal:** Next.js `15.3.5` (utilizando el **App Router**).
 * **Biblioteca de Renderizado:** React `19.0.0` (atención a los hooks y soporte de Server Actions).
-* **Base de Datos:** PostgreSQL.
+* **Base de Datos:** MySQL.
 * **ORM:** Drizzle ORM `^0.44.2` (con Drizzle Kit para migraciones).
 * **Estilos:** Tailwind CSS `^4.0.0` (utilizando `@tailwindcss/postcss`).
 * **Iconos:** `lucide-react` (iconos SVG profesionales).
 * **Autenticación:** NextAuth v5 (Auth.js).
-* **Driver DB:** Node-Postgres (`pg`).
+* **Driver DB:** `mysql2` (`mysql2/promise`).
 
 ---
 
@@ -25,7 +25,7 @@ El proyecto sigue una estructura limpia de 3 capas principales sobre Next.js:
 
 ```
 sistema-inventario/
-├── DATABASE.sql                 # Estructura física de PostgreSQL
+├── DATABASE.sql                 # Estructura física de MySQL
 ├── DATA_EXAMPLE.sql             # Seed de datos de prueba
 ├── .env.example                 # Plantilla de variables de entorno
 ├── src/
@@ -116,9 +116,9 @@ revalidatePath('/dashboard/pendiente-por-recibir');
 
 ## Esquema de la Base de Datos (Mapeo Drizzle)
 
-Cuando generes consultas en los modelos, ten presente la equivalencia entre las tablas físicas (PostgreSQL) y las propiedades en Drizzle ORM:
+Cuando generes consultas en los modelos, ten presente la equivalencia entre las tablas físicas (MySQL) y las propiedades en Drizzle ORM:
 
-| Tabla PostgreSQL     | Esquema Drizzle (`schema.ts`) | Propiedades Clave                                                                 | Relaciones Clave                                     |
+| Tabla MySQL          | Esquema Drizzle (`schema.ts`) | Propiedades Clave                                                                 | Relaciones Clave                                     |
 | -------------------- | ----------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | `usuarios`           | `usuarios`                    | `idUsuario` (serial), `nombre`, `rol`, `correo`, `password`                       | Entregas realizadas (`entregasEntregadas`), Entregas recibidas (`entregasRecibidas`) |
 | `contenedores`       | `contenedores`                | `idContenedor` (serial), `codigo` (unique), `tipoPalet` (char 1), `fechaLlegada`  | Entregas asociadas (`entregas`), SKUs incluidos (`skus`) |
@@ -173,8 +173,9 @@ Si el usuario te pide implementar un nuevo requerimiento, sigue estos flujos de 
 
 * **Reiniciar la base de datos (desarrollo):**
   ```bash
-  psql -U postgres -d sistema_inventario -f DATABASE.sql
-  psql -U postgres -d sistema_inventario -f DATA_EXAMPLE.sql
+  mysql -u root -p -e "DROP DATABASE IF EXISTS sistema_inventario; CREATE DATABASE sistema_inventario;"
+  mysql -u root -p sistema_inventario < DATABASE.sql
+  mysql -u root -p sistema_inventario < DATA_EXAMPLE.sql
   ```
 
 ---
@@ -212,15 +213,15 @@ Los siguientes usuarios están disponibles en `DATA_EXAMPLE.sql`:
 
 Antes de ejecutar el proyecto, asegúrate de tener:
 
-1. PostgreSQL corriendo con la base de datos creada
+1. MySQL corriendo con la base de datos creada
 2. Variables de entorno en `.env`:
    ```env
-   DATABASE_URL="postgresql://postgres:password@localhost:5432/sistema_inventario"
+   DATABASE_URL="mysql://root:password@localhost:3306/sistema_inventario"
    AUTH_SECRET="tu-secreto-generado"
    ```
 3. Datos de prueba cargados:
    ```bash
-   psql -U postgres -d sistema_inventario -f DATA_EXAMPLE.sql
+   mysql -u root -p -D sistema_inventario < DATA_EXAMPLE.sql
    ```
 
 ---
@@ -240,11 +241,11 @@ Antes de ejecutar el proyecto, asegúrate de tener:
 ### Error: "MissingSecret: Please define a `secret`"
 - **Solución:** Agrega `AUTH_SECRET` al archivo `.env` con un valor aleatorio seguro.
 
-### Error: "password authentication failed for user"
-- **Solución:** Verifica que las credenciales en `DATABASE_URL` sean correctas (usuario: `postgres`, no `postgre`).
+### Error: "Access denied for user"
+- **Solución:** Verifica que las credenciales en `DATABASE_URL` sean correctas (usuario y contraseña correctos para MySQL).
 
-### Error: "Module not found: Can't resolve 'pg-native'"
-- **Solución:** Es una advertencia inofensiva. El sistema usa `pg` (node-postgres), no `pg-native`.
+### Error: "Module not found: Can't resolve 'mysql2/promise'"
+- **Solución:** Asegúrate de agregar `serverExternalPackages: ["mysql2"]` en tu `next.config.ts`.
 
 ### Error: "The edge runtime does not support Node.js 'crypto' module"
 - **Solución:** El middleware no debe importar módulos de Node.js. Usa cookies directamente o configura `runtime = "nodejs"`.

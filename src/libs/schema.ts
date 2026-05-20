@@ -1,63 +1,56 @@
 import {
-  pgTable, serial, varchar, text, integer, timestamp, char
-} from 'drizzle-orm/pg-core';
+  mysqlTable, serial, varchar, text, int, timestamp, char
+} from 'drizzle-orm/mysql-core';
 import { relations } from 'drizzle-orm';
 
-// Usuarios
-export const usuarios = pgTable('usuarios', {
+export const usuarios = mysqlTable('usuarios', {
   idUsuario: serial('id_usuario').primaryKey(),
   nombre: varchar('nombre', { length: 100 }),
-  rol: varchar('rol', { length: 50 }), // Ej: 'recepcion', 'envios', 'supervisor'
+  rol: varchar('rol', { length: 50 }),
   correo: varchar('correo', { length: 100 }),
   password: text('password')
 });
 
-// Contenedores
-export const contenedores = pgTable('contenedores', {
+export const contenedores = mysqlTable('contenedores', {
   idContenedor: serial('id_contenedor').primaryKey(),
-  codigo: varchar('codigo', { length: 50 }).unique(), // Código escaneado o manual
-  tipoPalet: char('tipo_palet', { length: 1 }), // Ej: C, A, S, Q, etc.
+  codigo: varchar('codigo', { length: 50 }).unique(),
+  tipoPalet: char('tipo_palet', { length: 1 }),
   fechaLlegada: timestamp('fecha_llegada').defaultNow()
 });
 
-// Bodegas
-export const bodegas = pgTable('bodegas', {
+export const bodegas = mysqlTable('bodegas', {
   idBodega: serial('id_bodega').primaryKey(),
-  nombre: varchar('nombre', { length: 100 }) // Ej: 'bodega general', 'telefonía', etc.
+  nombre: varchar('nombre', { length: 100 })
 });
 
-// Entregas
-export const entregas = pgTable('entregas', {
+export const entregas = mysqlTable('entregas', {
   idEntrega: serial('id_entrega').primaryKey(),
-  idContenedor: integer('id_contenedor').references(() => contenedores.idContenedor),
-  idBodega: integer('id_bodega').references(() => bodegas.idBodega),
-  entregadoPor: integer('entregado_por').references(() => usuarios.idUsuario),
-  recibidoPor: integer('recibido_por').references(() => usuarios.idUsuario),
+  idContenedor: int('id_contenedor').references(() => contenedores.idContenedor),
+  idBodega: int('id_bodega').references(() => bodegas.idBodega),
+  entregadoPor: int('entregado_por').references(() => usuarios.idUsuario),
+  recibidoPor: int('recibido_por').references(() => usuarios.idUsuario),
   fechaEntrega: timestamp('fecha_entrega').defaultNow(),
   observaciones: text('observaciones')
 });
 
-// SKU
-export const sku = pgTable('sku', {
+export const sku = mysqlTable('sku', {
   idSku: serial('id_sku').primaryKey(),
-  codigo: varchar('codigo', { length: 50 }).unique(), // Código individual del producto
+  codigo: varchar('codigo', { length: 50 }).unique(),
   descripcion: text('descripcion'),
-  idContenedor: integer('id_contenedor').references(() => contenedores.idContenedor),
+  idContenedor: int('id_contenedor').references(() => contenedores.idContenedor),
   fechaRegistro: timestamp('fecha_registro').defaultNow()
 });
 
-// Geolocalización SKU
-export const geolocalizacionSku = pgTable('geolocalizacion_sku', {
+export const geolocalizacionSku = mysqlTable('geolocalizacion_sku', {
   idGeo: serial('id_geo').primaryKey(),
-  idSku: integer('id_sku').references(() => sku.idSku),
-  idBodega: integer('id_bodega').references(() => bodegas.idBodega),
+  idSku: int('id_sku').references(() => sku.idSku),
+  idBodega: int('id_bodega').references(() => bodegas.idBodega),
   rack: varchar('rack', { length: 20 }),
   nivel: varchar('nivel', { length: 20 }),
   pasillo: varchar('pasillo', { length: 20 }),
   fechaUbicacion: timestamp('fecha_ubicacion').defaultNow()
 });
 
-// Relaciones
 export const usuariosRelations = relations(usuarios, ({ many }) => ({
   entregasEntregadas: many(entregas, { relationName: 'entregadoPor' }),
   entregasRecibidas: many(entregas, { relationName: 'recibidoPor' })

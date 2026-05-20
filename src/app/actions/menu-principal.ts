@@ -240,7 +240,7 @@ export async function obtenerSeccionesNavegacion(): Promise<{ success: boolean; 
         nombre: 'Pendiente por recibir',
         descripcion: 'Contenedores entregados pero no confirmados como recibidos',
         icono: '',
-        ruta: '/dashboard/pendientes',
+        ruta: '/dashboard/pendiente-por-recibir',
         estadisticas: {
           total: stats.entregas.pendientes,
           criticos: stats.alertas.pendientesCriticos
@@ -284,7 +284,7 @@ export async function actualizarDashboard() {
   try {
     revalidatePath('/dashboard');
     revalidatePath('/dashboard/entrega-bodegas');
-    revalidatePath('/dashboard/pendientes');
+    revalidatePath('/dashboard/pendiente-por-recibir');
     revalidatePath('/dashboard/geolocalizados-sku');
     revalidatePath('/dashboard/geolocalizacion-sku-bodega');
     
@@ -315,7 +315,7 @@ export async function obtenerAlertasCriticas() {
         tipo: 'critico',
         mensaje: `${stats.alertas.pendientesCriticos} entregas críticas pendientes`,
         icono: '',
-        ruta: '/dashboard/pendientes'
+        ruta: '/dashboard/pendiente-por-recibir'
       });
     }
 

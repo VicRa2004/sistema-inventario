@@ -64,7 +64,7 @@ export async function registrarEntrega(data: RegistrarEntregaData) {
     });
 
     revalidatePath('/dashboard/entrega-bodegas');
-    revalidatePath('/dashboard/pendientes');
+    revalidatePath('/dashboard/pendiente-por-recibir');
     
     return { success: true, data: entrega };
   } catch (error) {
@@ -85,7 +85,7 @@ export async function confirmarRecepcion(idEntrega: number, recibidoPor: number,
     }
 
     revalidatePath('/dashboard/entrega-bodegas');
-    revalidatePath('/dashboard/pendientes');
+    revalidatePath('/dashboard/pendiente-por-recibir');
     
     return { success: true, data: entrega };
   } catch (error) {

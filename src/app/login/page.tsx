@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Warehouse } from 'lucide-react';
 
@@ -32,7 +31,7 @@ export default function LoginPage() {
       } else {
         setError('Credenciales inválidas');
       }
-    } catch (err) {
+    } catch {
       setError('Error de conexión');
     } finally {
       setLoading(false);

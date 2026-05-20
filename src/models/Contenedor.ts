@@ -12,7 +12,12 @@ export interface IContenedor {
 export class ContenedorModel {
   // Crear un nuevo contenedor
   static async create(data: Omit<IContenedor, 'idContenedor'>): Promise<IContenedor> {
-    const [contenedor] = await db.insert(contenedores).values(data).returning();
+    const [result] = await db.insert(contenedores).values(data);
+    const insertId = result.insertId;
+    const contenedor = await this.getById(insertId);
+    if (!contenedor) {
+      throw new Error('Error al crear contenedor');
+    }
     return contenedor;
   }
 
@@ -35,17 +40,16 @@ export class ContenedorModel {
 
   // Actualizar contenedor
   static async update(id: number, data: Partial<Omit<IContenedor, 'idContenedor'>>): Promise<IContenedor | null> {
-    const [contenedor] = await db.update(contenedores)
+    await db.update(contenedores)
       .set(data)
-      .where(eq(contenedores.idContenedor, id))
-      .returning();
-    return contenedor || null;
+      .where(eq(contenedores.idContenedor, id));
+    return await this.getById(id);
   }
 
   // Eliminar contenedor
   static async delete(id: number): Promise<boolean> {
-    const result = await db.delete(contenedores).where(eq(contenedores.idContenedor, id));
-    return (result.rowCount ?? 0) > 0;
+    const [result] = await db.delete(contenedores).where(eq(contenedores.idContenedor, id));
+    return result.affectedRows > 0;
   }
 
   // Verificar si el código ya existe

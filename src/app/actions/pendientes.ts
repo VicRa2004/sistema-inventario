@@ -218,7 +218,7 @@ export async function marcarComoRecibido(idEntrega: number, recibidoPor: number,
       return { success: false, error: 'Entrega no encontrada' };
     }
 
-    revalidatePath('/dashboard/pendientes');
+    revalidatePath('/dashboard/pendiente-por-recibir');
     revalidatePath('/dashboard/entrega-bodegas');
     
     return { success: true, data: entrega };

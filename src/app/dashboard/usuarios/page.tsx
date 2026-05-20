@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
 import { UserPlus, Users, Mail, Trash2 } from 'lucide-react';
 import {
   obtenerUsuarios,
@@ -17,7 +16,7 @@ interface Usuario {
 }
 
 export default function UsuariosPage() {
-  const { data: session } = useSession();
+
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

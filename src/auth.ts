@@ -11,7 +11,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         correo: { label: "Correo", type: "email" },
         password: { label: "Contraseña", type: "password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         try {
           const email = credentials?.correo as string | undefined;
           const password = credentials?.password as string | undefined;
@@ -65,14 +65,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id || "";
-        token.role = (user as any).role || "";
+        token.role = (user as { role?: string }).role || "";
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        (session.user as any).role = token.role as string;
+        (session.user as { role?: string }).role = token.role as string;
       }
       return session;
     },

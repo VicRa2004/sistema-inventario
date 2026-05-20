@@ -10,7 +10,12 @@ export interface IBodega {
 export class BodegaModel {
   // Crear una nueva bodega
   static async create(data: Omit<IBodega, 'idBodega'>): Promise<IBodega> {
-    const [bodega] = await db.insert(bodegas).values(data).returning();
+    const [result] = await db.insert(bodegas).values(data);
+    const insertId = result.insertId;
+    const bodega = await this.getById(insertId);
+    if (!bodega) {
+      throw new Error('Error al crear bodega');
+    }
     return bodega;
   }
 
@@ -33,17 +38,16 @@ export class BodegaModel {
 
   // Actualizar bodega
   static async update(id: number, data: Partial<Omit<IBodega, 'idBodega'>>): Promise<IBodega | null> {
-    const [bodega] = await db.update(bodegas)
+    await db.update(bodegas)
       .set(data)
-      .where(eq(bodegas.idBodega, id))
-      .returning();
-    return bodega || null;
+      .where(eq(bodegas.idBodega, id));
+    return await this.getById(id);
   }
 
   // Eliminar bodega
   static async delete(id: number): Promise<boolean> {
-    const result = await db.delete(bodegas).where(eq(bodegas.idBodega, id));
-    return (result.rowCount ?? 0) > 0;
+    const [result] = await db.delete(bodegas).where(eq(bodegas.idBodega, id));
+    return result.affectedRows > 0;
   }
 
   // Verificar si el nombre ya existe

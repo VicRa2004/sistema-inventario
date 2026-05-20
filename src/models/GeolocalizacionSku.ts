@@ -15,7 +15,12 @@ export interface IGeolocalizacionSku {
 export class GeolocalizacionSkuModel {
   // Crear una nueva geolocalización
   static async create(data: Omit<IGeolocalizacionSku, 'idGeo'>): Promise<IGeolocalizacionSku> {
-    const [geoCreated] = await db.insert(geolocalizacionSku).values(data).returning();
+    const [result] = await db.insert(geolocalizacionSku).values(data);
+    const insertId = result.insertId;
+    const geoCreated = await this.getById(insertId);
+    if (!geoCreated) {
+      throw new Error('Error al crear geolocalización');
+    }
     return geoCreated;
   }
 
@@ -38,23 +43,22 @@ export class GeolocalizacionSkuModel {
 
   // Actualizar geolocalización
   static async update(id: number, data: Partial<Omit<IGeolocalizacionSku, 'idGeo'>>): Promise<IGeolocalizacionSku | null> {
-    const [geoUpdated] = await db.update(geolocalizacionSku)
+    await db.update(geolocalizacionSku)
       .set(data)
-      .where(eq(geolocalizacionSku.idGeo, id))
-      .returning();
-    return geoUpdated || null;
+      .where(eq(geolocalizacionSku.idGeo, id));
+    return await this.getById(id);
   }
 
   // Eliminar geolocalización
   static async delete(id: number): Promise<boolean> {
-    const result = await db.delete(geolocalizacionSku).where(eq(geolocalizacionSku.idGeo, id));
-    return (result.rowCount ?? 0) > 0;
+    const [result] = await db.delete(geolocalizacionSku).where(eq(geolocalizacionSku.idGeo, id));
+    return result.affectedRows > 0;
   }
 
   // Eliminar geolocalización por SKU
   static async deleteBySku(idSku: number): Promise<boolean> {
-    const result = await db.delete(geolocalizacionSku).where(eq(geolocalizacionSku.idSku, idSku));
-    return (result.rowCount ?? 0) > 0;
+    const [result] = await db.delete(geolocalizacionSku).where(eq(geolocalizacionSku.idSku, idSku));
+    return result.affectedRows > 0;
   }
 
   // Obtener geolocalizaciones por bodega

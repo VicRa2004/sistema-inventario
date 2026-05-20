@@ -13,7 +13,12 @@ export interface ISku {
 export class SkuModel {
   // Crear un nuevo SKU
   static async create(data: Omit<ISku, 'idSku'>): Promise<ISku> {
-    const [skuCreated] = await db.insert(sku).values(data).returning();
+    const [result] = await db.insert(sku).values(data);
+    const insertId = result.insertId;
+    const skuCreated = await this.getById(insertId);
+    if (!skuCreated) {
+      throw new Error('Error al crear SKU');
+    }
     return skuCreated;
   }
 
@@ -36,17 +41,16 @@ export class SkuModel {
 
   // Actualizar SKU
   static async update(id: number, data: Partial<Omit<ISku, 'idSku'>>): Promise<ISku | null> {
-    const [skuUpdated] = await db.update(sku)
+    await db.update(sku)
       .set(data)
-      .where(eq(sku.idSku, id))
-      .returning();
-    return skuUpdated || null;
+      .where(eq(sku.idSku, id));
+    return await this.getById(id);
   }
 
   // Eliminar SKU
   static async delete(id: number): Promise<boolean> {
-    const result = await db.delete(sku).where(eq(sku.idSku, id));
-    return (result.rowCount ?? 0) > 0;
+    const [result] = await db.delete(sku).where(eq(sku.idSku, id));
+    return result.affectedRows > 0;
   }
 
   // Verificar si el código SKU ya existe

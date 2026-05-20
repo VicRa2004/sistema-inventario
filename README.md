@@ -4,7 +4,7 @@
 [![React Version](https://img.shields.io/badge/React-19.0.0-blue.svg?style=flat-square&logo=react)](https://react.dev/)
 [![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.44.2-orange.svg?style=flat-square)](https://orm.drizzle.team/)
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.0-38bdf8.svg?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1.svg?style=flat-square&logo=mysql)](https://www.mysql.com/)
 
 **Control de Inventario con Geolocalización (CIG)** es una plataforma web modular de alto rendimiento diseñada específicamente para optimizar la logística de recepción, distribución interna y geolocalización de mercancías dentro de bodegas departamentales (como Liverpool). 
 
@@ -37,7 +37,7 @@ La aplicación se construyó bajo un enfoque moderno y desacoplado enfocado en e
 
 *   **Frontend:** **Next.js 15 (App Router)** con componentes del lado del cliente (`use client`) y Server Components para la entrega veloz de datos.
 *   **Estilos:** **Tailwind CSS v4** mediante PostCSS para una carga de hoja de estilos ultraligera y animaciones fluidas.
-*   **Base de Datos:** **PostgreSQL**, garantizando integridad referencial y transaccional para operaciones logísticas críticas.
+*   **Base de Datos:** **MySQL**, garantizando integridad referencial y transaccional para operaciones logísticas críticas.
 *   **ORM / Acceso a Datos:** **Drizzle ORM** configurado con un patrón de **Modelos de Dominio (Active Record Wrapper)** en el backend para encapsular las consultas SQL y mantener las vistas libres de lógica de persistencia.
 *   **Lógica del Servidor:** **Next.js Server Actions** que orquestan las solicitudes directamente con la base de datos sin necesidad de APIs intermedias redundantes.
 
@@ -112,7 +112,7 @@ erDiagram
 
 ```
 sistema-inventario/
-├── DATABASE.sql                   # Archivo DDL de la base de datos PostgreSQL
+├── DATABASE.sql                   # Archivo DDL de la base de datos MySQL
 ├── DATA_EXAMPLE.sql               # Scripts SQL para poblar datos de prueba
 ├── AGENTS.md                      # Manual técnico y reglas para agentes de IA
 ├── .env.example                   # Plantilla de variables de entorno requeridas
@@ -153,24 +153,24 @@ npm install
 ```
 
 ### 3. Configurar variables de entorno
-Copia la plantilla de variables de entorno y define tu cadena de conexión de PostgreSQL local:
+Copia la plantilla de variables de entorno y define tu cadena de conexión de MySQL local:
 ```bash
 cp .env.example .env
 ```
 Abre tu archivo `.env` recién creado y define la variable `DATABASE_URL`:
 ```env
-DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/nombre_bd"
+DATABASE_URL="mysql://usuario:contraseña@localhost:3306/nombre_bd"
 ```
 
 ### 4. Inicializar y Semillar la Base de Datos
-*   Crea una base de datos PostgreSQL en tu servidor local.
+*   Crea una base de datos MySQL en tu servidor local.
 *   Importa el esquema de base de datos desde `DATABASE.sql`:
     ```bash
-    psql -U tu_usuario -d tu_nombre_bd -f DATABASE.sql
+    mysql -u tu_usuario -p tu_nombre_bd < DATABASE.sql
     ```
 *   Opcional (pero muy recomendado): Importa los datos ficticios de prueba desde `DATA_EXAMPLE.sql` para visualizar de inmediato el funcionamiento de los módulos:
     ```bash
-    psql -U tu_usuario -d tu_nombre_bd -f DATA_EXAMPLE.sql
+    mysql -u tu_usuario -p tu_nombre_bd < DATA_EXAMPLE.sql
     ```
 
 ### 5. Correr el servidor de desarrollo
